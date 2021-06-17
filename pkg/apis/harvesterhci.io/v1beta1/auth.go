@@ -1,9 +1,5 @@
 package v1beta1
 
-import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
 // +genclient
 // +genclient:nonNamespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -11,26 +7,6 @@ import (
 // +kubebuilder:printcolumn:name="DISPLAY_NAME",type=string,JSONPath=`.displayName`
 // +kubebuilder:printcolumn:name="USERNAME",type=string,JSONPath=`.username`
 // +kubebuilder:printcolumn:name="DESCRIPTION",type=string,JSONPath=`.description`
-
-type User struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	// +kubebuilder:validation:Required
-	DisplayName string `json:"displayName"`
-
-	// +optional
-	Description string `json:"description,omitempty"`
-
-	// +kubebuilder:validation:Required
-	Username string `json:"username"`
-
-	// +kubebuilder:validation:Required
-	Password string `json:"password"`
-
-	// +optional
-	IsAdmin bool `json:"isAdmin,omitempty"`
-}
 
 // Login
 type Login struct {
@@ -60,7 +36,6 @@ type AuthenticationMode string
 
 const (
 	KubernetesCredentials AuthenticationMode = "kubernetesCredentials"
-	LocalUser             AuthenticationMode = "localUser"
 	Rancher               AuthenticationMode = "rancher"
 )
 
