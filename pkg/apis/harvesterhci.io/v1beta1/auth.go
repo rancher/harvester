@@ -1,13 +1,5 @@
 package v1beta1
 
-// +genclient
-// +genclient:nonNamespaced
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +kubebuilder:resource:shortName=user;users,scope=Cluster
-// +kubebuilder:printcolumn:name="DISPLAY_NAME",type=string,JSONPath=`.displayName`
-// +kubebuilder:printcolumn:name="USERNAME",type=string,JSONPath=`.username`
-// +kubebuilder:printcolumn:name="DESCRIPTION",type=string,JSONPath=`.description`
-
 // Login
 type Login struct {
 	// Token is the bearer token for authentication to the kubernetes cluster, from serviceAccount's secret.
