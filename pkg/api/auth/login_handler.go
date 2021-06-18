@@ -35,10 +35,6 @@ const (
 	defaultRestConfigResourceName = "default"
 )
 
-var (
-	publicInfoViewerGroup = "system:unauthenticated"
-)
-
 func NewLoginHandler(scaled *config.Scaled, restConfig *rest.Config) *LoginHandler {
 	invalidHash, err := bcrypt.GenerateFromPassword([]byte("invalid"), bcrypt.DefaultCost)
 	if err != nil {
@@ -136,8 +132,8 @@ func (h *LoginHandler) login(input *harvesterv1.Login) (tokenResp *harvesterv1.T
 	var impersonateAuthInfo *clientcmdapi.AuthInfo
 	impersonateAuthInfo, err = h.k8sLogin(input)
 	if err != nil {
-			return nil, err
-		}
+		return nil, err
+	}
 
 	var token string
 	token, err = h.tokenManager.Generate(*impersonateAuthInfo)
