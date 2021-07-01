@@ -12,10 +12,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 	kubevirtapis "kubevirt.io/client-go/api/v1"
+	cdiv1beta1 "kubevirt.io/containerized-data-importer/pkg/apis/core/v1beta1"
 
 	"github.com/harvester/harvester/pkg/controller/master/migration"
 	"github.com/harvester/harvester/pkg/generated/clientset/versioned/fake"
+	cditype "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/cdi.kubevirt.io/v1beta1"
 	kubevirttype "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/kubevirt.io/v1"
+	cdictrl "github.com/harvester/harvester/pkg/generated/controllers/cdi.kubevirt.io/v1beta1"
 	kubevirtctrl "github.com/harvester/harvester/pkg/generated/controllers/kubevirt.io/v1"
 	"github.com/harvester/harvester/pkg/util"
 )
@@ -295,6 +298,137 @@ func TestAbortMigrateAction(t *testing.T) {
 
 }
 
+func TestAddVolume(t *testing.T) {
+	type input struct {
+		namespace  string
+		name       string
+		input      AddVolumeInput
+		dataVolume *cdiv1beta1.DataVolume
+	}
+	type output struct {
+		err error
+	}
+	var testCases = []struct {
+		name     string
+		given    input
+		expected output
+	}{
+		{
+			name: "Volume source not found",
+			given: input{
+				namespace: "default",
+				name:      "test",
+				input: AddVolumeInput{
+					DiskName:         "disk",
+					VolumeSourceName: "not-exist",
+				},
+			},
+			expected: output{
+				err: errors.New("datavolumes.cdi.kubevirt.io \"not-exist\" not found"),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		var clientset = fake.NewSimpleClientset()
+		if tc.given.dataVolume != nil {
+			err := clientset.Tracker().Add(tc.given.dataVolume)
+			assert.Nil(t, err, "Mock resource should add into fake controller tracker")
+		}
+
+		var handler = &vmActionHandler{
+			dataVolumesCache: fakeDataVolumeCache(clientset.CdiV1beta1().DataVolumes),
+		}
+
+		var actual output
+		actual.err = handler.addVolume(context.Background(), tc.given.namespace, tc.given.namespace, tc.given.input)
+
+		if tc.expected.err != nil && actual.err != nil {
+			//errors from pkg/errors track stacks so we only compare the error string here
+			assert.Equal(t, tc.expected.err.Error(), actual.err.Error(), "case %q", tc.name)
+		} else {
+			assert.Equal(t, tc.expected.err, actual.err, "case %q", tc.name)
+		}
+	}
+}
+
+func TestRemoveVolume(t *testing.T) {
+	type input struct {
+		namespace  string
+		name       string
+		input      RemoveVolumeInput
+		vmInstance *kubevirtapis.VirtualMachineInstance
+	}
+	type output struct {
+		err error
+	}
+	var testCases = []struct {
+		name     string
+		given    input
+		expected output
+	}{
+		{
+			name: "VM instance not found",
+			given: input{
+				namespace: "default",
+				name:      "test",
+				input: RemoveVolumeInput{
+					DiskName: "test",
+				},
+			},
+			expected: output{
+				err: errors.New("virtualmachineinstances.kubevirt.io \"test\" not found"),
+			},
+		},
+		{
+			name: "Hotplug disk not found",
+			given: input{
+				namespace: "default",
+				name:      "test",
+				input: RemoveVolumeInput{
+					DiskName: "not-exist",
+				},
+				vmInstance: &kubevirtapis.VirtualMachineInstance{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "default",
+						Name:      "test",
+					},
+					Spec: kubevirtapis.VirtualMachineInstanceSpec{
+						Volumes: nil,
+					},
+					Status: kubevirtapis.VirtualMachineInstanceStatus{Phase: kubevirtapis.Running, MigrationState: nil},
+				},
+			},
+			expected: output{
+				err: errors.New("Disk `not-exist` not found in virtual machine `default/test`"),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		var clientset = fake.NewSimpleClientset()
+		if tc.given.vmInstance != nil {
+			err := clientset.Tracker().Add(tc.given.vmInstance)
+			assert.Nil(t, err, "Mock resource should add into fake controller tracker")
+		}
+
+		var handler = &vmActionHandler{
+			vmiCache:         fakeVirtualMachineInstanceCache(clientset.KubevirtV1().VirtualMachineInstances),
+			dataVolumesCache: fakeDataVolumeCache(clientset.CdiV1beta1().DataVolumes),
+		}
+
+		var actual output
+		actual.err = handler.removeVolume(context.Background(), tc.given.namespace, tc.given.name, tc.given.input)
+
+		if tc.expected.err != nil && actual.err != nil {
+			//errors from pkg/errors track stacks so we only compare the error string here
+			assert.Equal(t, tc.expected.err.Error(), actual.err.Error(), "case %q", tc.name)
+		} else {
+			assert.Equal(t, tc.expected.err, actual.err, "case %q", tc.name)
+		}
+	}
+}
+
 type fakeVirtualMachineInstanceCache func(string) kubevirttype.VirtualMachineInstanceInterface
 
 func (c fakeVirtualMachineInstanceCache) Get(namespace, name string) (*kubevirtapis.VirtualMachineInstance, error) {
@@ -407,4 +541,22 @@ func (c fakeVirtualMachineInstanceMigrationClient) Watch(namespace string, opts 
 
 func (c fakeVirtualMachineInstanceMigrationClient) Patch(namespace, name string, pt types.PatchType, data []byte, subresources ...string) (result *kubevirtapis.VirtualMachineInstanceMigration, err error) {
 	return c(namespace).Patch(context.TODO(), name, pt, data, metav1.PatchOptions{}, subresources...)
+}
+
+type fakeDataVolumeCache func(string) cditype.DataVolumeInterface
+
+func (c fakeDataVolumeCache) Get(namespace, name string) (*cdiv1beta1.DataVolume, error) {
+	return c(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+}
+
+func (c fakeDataVolumeCache) List(namespace string, selector labels.Selector) ([]*cdiv1beta1.DataVolume, error) {
+	panic("implement me")
+}
+
+func (c fakeDataVolumeCache) AddIndexer(indexName string, indexer cdictrl.DataVolumeIndexer) {
+	panic("implement me")
+}
+
+func (c fakeDataVolumeCache) GetByIndex(indexName, key string) ([]*cdiv1beta1.DataVolume, error) {
+	panic("implement me")
 }
