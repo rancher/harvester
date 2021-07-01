@@ -43,6 +43,7 @@ func RegisterSchema(scaled *config.Scaled, server *server.Server, options config
 	restores := scaled.HarvesterFactory.Harvesterhci().V1beta1().VirtualMachineRestore()
 	settings := scaled.HarvesterFactory.Harvesterhci().V1beta1().Setting()
 	nodes := scaled.CoreFactory.Core().V1().Node()
+	dataVolumes := scaled.CDIFactory.Cdi().V1beta1().DataVolume()
 	vmt := scaled.HarvesterFactory.Harvesterhci().V1beta1().VirtualMachineTemplate()
 	vmtv := scaled.HarvesterFactory.Harvesterhci().V1beta1().VirtualMachineTemplateVersion()
 
@@ -73,6 +74,7 @@ func RegisterSchema(scaled *config.Scaled, server *server.Server, options config
 		restores:                  restores,
 		settingCache:              settings.Cache(),
 		nodeCache:                 nodes.Cache(),
+		dataVolumesCache:          dataVolumes.Cache(),
 		virtSubresourceRestClient: virtSubresourceClient,
 		virtRestClient:            virtv1Client.RESTClient(),
 	}
