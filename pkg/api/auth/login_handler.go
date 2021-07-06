@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/harvester/harvester/pkg/util"
 	"github.com/rancher/rancher/pkg/auth/tokens"
+
+	"github.com/harvester/harvester/pkg/util"
 )
 
 const (
@@ -38,7 +39,6 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	util.ResponseErrorMsg(rw, http.StatusBadRequest, "Unsupported action")
-	return
 }
 
 func resetCookie(rw http.ResponseWriter, name string, isSecure bool) {

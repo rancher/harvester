@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	rancherSchema   = "management.cattle.io.preference"
+	rancherSchema = "management.cattle.io.preference"
 )
 
 func getPreferenceSchema() string {

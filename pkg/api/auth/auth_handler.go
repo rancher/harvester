@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/harvester/harvester/pkg/config"
-	"github.com/harvester/harvester/pkg/util"
 	dashboardauthapi "github.com/kubernetes/dashboard/src/app/backend/auth/api"
 	"github.com/rancher/rancher/pkg/auth/providers"
 	"github.com/rancher/rancher/pkg/auth/requests"
@@ -15,6 +13,9 @@ import (
 	"k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/apiserver/pkg/endpoints/request"
 	"k8s.io/client-go/rest"
+
+	"github.com/harvester/harvester/pkg/config"
+	"github.com/harvester/harvester/pkg/util"
 )
 
 func NewMiddleware(ctx context.Context, scaled *config.Scaled, rancherRestConfig *rest.Config, AddRancherAuthenticator bool, authedPrefix []string, skipAuthPrefix []string) (*Middleware, error) {

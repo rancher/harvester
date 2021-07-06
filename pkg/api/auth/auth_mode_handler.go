@@ -2,9 +2,10 @@ package auth
 
 import (
 	"encoding/json"
+	"net/http"
+
 	harvesterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
 	"github.com/harvester/harvester/pkg/util"
-	"net/http"
 )
 
 func ModeHandler(rw http.ResponseWriter, r *http.Request) {
