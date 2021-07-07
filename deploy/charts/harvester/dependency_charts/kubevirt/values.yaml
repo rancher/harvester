@@ -127,11 +127,18 @@ spec:
     ##
     developerConfiguration:
 
-      ## Specify whether an optional feature is enabled or not at the global level,
-      ## select many from [CPUManager, ExperimentalIgnitionSupport, LiveMigration, CPUNodeDiscovery, HypervStrictCheck, Sidecar, GPU, Snapshot, HostDisk], ref to:
-      ## https://github.com/kubevirt/kubevirt/blob/f5ffba5f84365155c81d0e2cda4aa709da062230/pkg/virt-config/feature-gates.go#L26-L36.
+      ## Specify whether an optional feature is enabled at the global level.
+      ## Select many from [
+      ##    CPUManager, ExperimentalIgnitionSupport, LiveMigration,
+      ##    SRIOVLiveMigration, CPUNodeDiscovery, HypervStrictCheck,
+      ##    Sidecar, GPU, HostDevices, Snapshot, HotplugVolumes,
+      ##    HostDisk, ExperimentalVirtiofsSupport, Macvtap
+      ## ].
+      ## Ref to: https://github.com/kubevirt/kubevirt/blob/127736619519e6b914e75930fc467c672e766e42/pkg/virt-config/feature-gates.go#L26-L42.
       ##
-      featureGates: ["LiveMigration"]
+      featureGates: 
+      - "LiveMigration"
+      - "HotplugVolumes"
 
       ## Specify the toleration in percent when PVs' available space is smaller than requested,
       ## this argument will be passed to "virt-launcher" as "--less-pvc-space-toleration",
