@@ -2,14 +2,11 @@ package settings
 
 import (
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/sirupsen/logrus"
-
-	harvesterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
 )
 
 var (
@@ -19,7 +16,6 @@ var (
 	InjectDefaults string
 
 	APIUIVersion                 = NewSetting("api-ui-version", "1.1.9") // Please update the HARVESTER_API_UI_VERSION in package/Dockerfile when updating the version here.
-	AuthenticationMode           = NewSetting("authentication-mode", fmt.Sprintf("%s,%s", harvesterv1.KubernetesCredentials, harvesterv1.LocalUser))
 	AuthSecretName               = NewSetting("auth-secret-name", "harvester-key-holder")
 	AuthTokenMaxTTLMinutes       = NewSetting("auth-token-max-ttl-minutes", "720")
 	FirstLogin                   = NewSetting("first-login", "true")
