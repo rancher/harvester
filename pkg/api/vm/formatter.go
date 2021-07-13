@@ -23,6 +23,8 @@ const (
 	backupVM       = "backup"
 	restoreVM      = "restore"
 	createTemplate = "createTemplate"
+	addVolume      = "addvolume"
+	removeVolume   = "removevolume"
 )
 
 type vmformatter struct {
@@ -83,6 +85,14 @@ func (vf *vmformatter) formatter(request *types.APIRequest, resource *types.RawR
 
 	if vf.canCreateTemplate(vmi) {
 		resource.AddAction(request, createTemplate)
+	}
+
+	if vf.canAddVolume(vmi) {
+		resource.AddAction(request, addVolume)
+	}
+
+	if vf.canRemoveVolume(vmi) {
+		resource.AddAction(request, removeVolume)
 	}
 }
 
@@ -206,6 +216,14 @@ func (vf *vmformatter) canCreateTemplate(vmi *kv1.VirtualMachineInstance) bool {
 		return false
 	}
 	return true
+}
+
+func (vf *vmformatter) canAddVolume(vmi *kv1.VirtualMachineInstance) bool {
+	return vmi != nil && vmi.IsRunning()
+}
+
+func (vf *vmformatter) canRemoveVolume(vmi *kv1.VirtualMachineInstance) bool {
+	return vmi != nil && vmi.IsRunning()
 }
 
 func (vf *vmformatter) getVMI(vm *kv1.VirtualMachine) *kv1.VirtualMachineInstance {
